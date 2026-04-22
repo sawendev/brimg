@@ -91,10 +91,22 @@ fn main() {
 	let dh = cfg.size.1 as u32 * 4;
 	
 	use image::imageops as iop;
-	let img = iop::resize(&img, dw, dh, match cfg.filter {
+	let mut img = iop::resize(&img, dw, dh, match cfg.filter {
 		false => iop::FilterType::Nearest,
 		true => iop::FilterType::CatmullRom,
 	});
+	
+	if let Some((min, max)) = cfg.dither {
+		let r = (max - min) as u16;
+		for p in img.pixels_mut().map(|l| &mut l.0[0]) {
+			if *p < min { *p = 0 }
+			else if *p < max {
+				*p = (((*p - min) as u16 * 255) / r) as u8;
+			} else { *p = 255 }
+		}
+		
+		iop::dither(&mut img, &iop::BiLevel);
+	}
 	
 	let mut out = vec![0u32; cfg.size.0 * cfg.size.1];
 	for (i, c) in out.iter_mut().enumerate() {
@@ -108,11 +120,7 @@ fn main() {
 			let dy = cy as u32 * 4 + DY[i];
 			let p = img.get_pixel(dx, dy).0[0];
 			
-			if let Some((lo, hi)) = cfg.dither {
-				if p >= rand::random_range(lo..hi) {
-					*c |= 1 << i;
-				}
-			} else if p >= cfg.thresh {
+			if p >= cfg.thresh {
 				*c |= 1 << i;
 			}
 		}
