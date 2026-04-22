@@ -10,8 +10,8 @@ Options:
   -q, --quiet                   Do not print output
   -f, --filter                  Use filtering
   -s, --size <width> <height>   Output size (in characters)
-  -t, --thresh <threshold>      Set threshold (ignored if dithering enabled)
-  -d, --dither <min> <max>      Enable dithering mode"
+  -t, --thresh <threshold>      Set threshold
+  -d, --dither <min> <max>      Enable dithering"
 );
 	std::process::exit(bad as i32)
 }
